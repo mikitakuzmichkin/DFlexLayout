@@ -164,6 +164,9 @@ public partial class DFlexLayout : MonoBehaviour
         set => _bottomPadding = value;
     }
 
+    private Vector2 _InnerPosition => new Vector2(_leftPadding * (1 - _Rect.pivot.x) - _rightPadding * _Rect.pivot.x, -_topPadding * _Rect.pivot.y + _bottomPadding * (1 - _Rect.pivot.y));
+    private Vector2 _InnerSize => _FlexElement.GetSize().size - new Vector2(_leftPadding  + _rightPadding, _topPadding + _bottomPadding);
+
     private void LateUpdate()
     {
         bool wasUpdateChilds = false;
@@ -241,8 +244,7 @@ public partial class DFlexLayout : MonoBehaviour
         }
         else
         {
-            var sizeParams = GetChildSizeParams(_flexChilds.Where(c => c.SkipLayout == false), Direction, _Rect.rect, GapType, Gap, 
-                TopPadding, BottomPadding, LeftPadding, RightPadding);
+            var sizeParams = GetChildSizeParams(_flexChilds.Where(c => c.SkipLayout == false), Direction, _Rect.rect, GapType, Gap);
             var fillSize = GetFillSize(sizeParams.sumSize, sizeParams.fillCount, _Rect.rect);
             SetChildPositions(sizeParams.sumSize, new Vector2(sizeParams.maxWidth, sizeParams.maxHeight), fillSize, sizeParams.fillCount);
         }
@@ -255,8 +257,8 @@ public partial class DFlexLayout : MonoBehaviour
 
     private Vector2 GetFillSize(Vector2 sumSize, Vector2 fillCount, Rect rect)
     {
-        var x = Mathf.Max(0, (rect.width - sumSize.x - LeftPadding - RightPadding) / (fillCount.x * 1f));
-        var y = Mathf.Max(0, (rect.height - sumSize.y - TopPadding - BottomPadding) / (fillCount.y * 1f));
+        var x = Mathf.Max(0, (_InnerSize.x - sumSize.x) / (fillCount.x * 1f));
+        var y = Mathf.Max(0, (_InnerSize.y - sumSize.y) / (fillCount.y * 1f));
         return new Vector2(x, y);
     }
 
@@ -277,8 +279,7 @@ public partial class DFlexLayout : MonoBehaviour
 
                     if (_FlexElement.HeightType == DFlexElement.ETypeSize.Layout)
                     {
-                        height = maxSize.y
-                                 + TopPadding + BottomPadding;
+                        height = maxSize.y;
                     }
                     _FlexElement.SetSize(width, height, true);
                 }
@@ -289,8 +290,7 @@ public partial class DFlexLayout : MonoBehaviour
                 {
                     if (_FlexElement.WidthType == DFlexElement.ETypeSize.Layout)
                     {
-                        width = maxSize.x
-                                + LeftPadding + RightPadding;
+                        width = maxSize.x;
                     }
 
                     if (_FlexElement.HeightType == DFlexElement.ETypeSize.Layout)
@@ -309,7 +309,7 @@ public partial class DFlexLayout : MonoBehaviour
                 throw new ArgumentOutOfRangeException();
         }
 
-        var parentSize = _Rect.rect.size;
+        var parentSize = _InnerSize;
         if (_FlexElement.WidthType == DFlexElement.ETypeSize.Layout && Direction == ETypeDirection.PositiveY)
         {
             parentSize.x = maxSize.x;
@@ -323,7 +323,7 @@ public partial class DFlexLayout : MonoBehaviour
         var childs = _flexChilds.Where(c => c.SkipLayout == false);
         {
             SetChildPositionsPositive(Direction, sumSize, maxSize, fillSize, fillCount, childs, 
-                parentSize, Gap, GapType, _Rect.pivot);
+                parentSize, Gap, GapType, _Rect.pivot, _InnerPosition);
         }
         
     }
@@ -351,6 +351,23 @@ public partial class DFlexLayout : MonoBehaviour
         {
             //Debug.Log($"gameobject {gameObject.name} gap changed");
             return true;
+        }
+
+        if (LeftPadding < 0)
+        {
+            LeftPadding = _oldLeftPadding;
+        }
+        if (RightPadding < 0)
+        {
+            RightPadding = _oldRightPadding;
+        }
+        if (TopPadding < 0)
+        {
+            TopPadding = _oldTopPadding;
+        }
+        if (BottomPadding < 0)
+        {
+            BottomPadding = _oldBottomPadding;
         }
         
         if (Math.Abs(_oldLeftPadding - LeftPadding) > TOLERANCE ||

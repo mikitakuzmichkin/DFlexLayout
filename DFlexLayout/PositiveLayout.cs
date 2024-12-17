@@ -7,8 +7,10 @@ public partial class DFlexLayout
 {
     private void SetChildPositionsPositive(ETypeDirection direction, Vector2 sumSizeVector, Vector2 maxSize,
         Vector2 fillSize, Vector2Int fillCount, IEnumerable<IFlexElement> flexChilds, Vector2 parentSize, float gapBase, ETypeGap typeGap,
-        Vector2 pivotBase)
+        Vector2 pivotBase, Vector2 positionDeviation)
     {
+        Debug.Log("parentsize = " + parentSize);
+        Debug.Log("parentLocalPos = " + _InnerPosition);
         Vector2 offset;
         switch (direction)
         {
@@ -21,6 +23,7 @@ public partial class DFlexLayout
             default:
                 throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
         }
+        Debug.Log("offset = " + offset);
 
         (ETypeAlign align, float size, float sumsize, bool reverse, float originalOffset, float alternativeOffset,
             ETypeAlign
@@ -158,10 +161,10 @@ public partial class DFlexLayout
             switch (direction)
             {
                 case ETypeDirection.PositiveX:
-                    child.SetLocalPos(new Vector2(originalLocalPos, alternativeLocalPos));
+                    child.SetLocalPos(new Vector2(originalLocalPos, alternativeLocalPos) + positionDeviation);
                     break;
                 case ETypeDirection.PositiveY:
-                    child.SetLocalPos(new Vector2(alternativeLocalPos, originalLocalPos));
+                    child.SetLocalPos(new Vector2(alternativeLocalPos, originalLocalPos) + positionDeviation);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction), direction, null);
@@ -173,21 +176,20 @@ public partial class DFlexLayout
 
     private Vector2 GetHorizontalOffset(Vector2 sumSize,  Vector2 maxSize, Vector2Int fillCount, Vector2 parentSize, Vector2 pivotBase)
     {
-        float offsetX = LeftPadding;
+        float offsetX = 0;
         if (fillCount.x < 1 )
         {
             switch (HorizontalAlign)
             {
                 case ETypeAlign.None:
                 case ETypeAlign.Start:
-                    offsetX = LeftPadding;
+                    offsetX = 0;
                     break;
                 case ETypeAlign.Center:
                     offsetX = (parentSize.x - sumSize.x) / 2f;
                     break;
                 case ETypeAlign.End:
                     offsetX = parentSize.x
-                        //- RightPadding 
                               - sumSize.x;
                     break;
                 default:
@@ -196,24 +198,20 @@ public partial class DFlexLayout
         }
 
 
-        float offsetY = -TopPadding;
+        float offsetY = 0;
        // if (_FlexElement.HeightType != DFlexElement.ETypeSize.Layout)
         {
             switch (VerticalAlign)
             {
                 case ETypeAlign.Start:
-                    offsetY = (parentSize.y * (1 - pivotBase.y) - maxSize.y / 2f)
-                              - TopPadding
-                        ;
+                    offsetY = (parentSize.y * (1 - pivotBase.y) - maxSize.y / 2f);
                     break;
                 case ETypeAlign.None:
                 case ETypeAlign.Center:
                     offsetY = (parentSize.y * (0.5f - pivotBase.y));
                     break;
                 case ETypeAlign.End:
-                    offsetY = parentSize.y * -pivotBase.y + maxSize.y / 2f 
-                                                          +BottomPadding
-                        ;
+                    offsetY = parentSize.y * -pivotBase.y + maxSize.y / 2f;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -225,45 +223,39 @@ public partial class DFlexLayout
 
     private Vector2 GetVerticalOffset(Vector2 sumSize, Vector2 maxSize, Vector2Int fillCount, Vector2 parentSize)
     {
-        float offsetY = TopPadding;
+        float offsetY = 0;
         if (fillCount.y < 1 )
         {
             switch (VerticalAlign)
             {
                 case ETypeAlign.None:
                 case ETypeAlign.Start:
-                    offsetY = parentSize.y - sumSize.y 
-                                                - TopPadding
-                        ;
+                    offsetY = parentSize.y - sumSize.y;
                     break;
                 case ETypeAlign.Center:
                     offsetY = (parentSize.y - sumSize.y) / 2f;
                     break;
                 case ETypeAlign.End:
-                    offsetY = BottomPadding;
+                    offsetY = 0;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
-        float offsetX = LeftPadding;
+        float offsetX = 0;
         //if (_FlexElement.WidthType != DFlexElement.ETypeSize.Layout)
         {
             switch (HorizontalAlign)
             {
                 case ETypeAlign.Start:
-                    offsetX = -(parentSize.x - maxSize.x) / 2f 
-                              + LeftPadding
-                              ;
+                    offsetX = -(parentSize.x - maxSize.x) / 2f;
                     break;
                 case ETypeAlign.None:
                 case ETypeAlign.Center:
                     break;
                 case ETypeAlign.End:
-                    offsetX = (parentSize.x - maxSize.x) / 2f 
-                              - RightPadding
-                              ;
+                    offsetX = (parentSize.x - maxSize.x) / 2f;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

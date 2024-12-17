@@ -7,7 +7,7 @@ public partial class DFlexLayout
 {
          private (Vector2 sumSize, float maxWidth, float maxHeight, Vector2Int fillCount) 
              GetChildSizeParams(IEnumerable<IFlexElement> childs, DFlexLayout.ETypeDirection direction, Rect rect, DFlexLayout.ETypeGap gapType,
-                 float gap, float topPadding, float bottomPadding, float leftPadding, float rightPadding)
+                 float gap)
     {
         Vector2 size = new Vector2();
         float maxWidth = Single.MinValue;
@@ -51,8 +51,8 @@ public partial class DFlexLayout
             if (fillCount.y > 0)
             {
                 fillCount.y = 1;
-                maxHeight = rect.height;
-                
+                maxHeight = _InnerSize.y;
+
             }
 
             if (gapType == DFlexLayout.ETypeGap.Fixed)
@@ -60,11 +60,7 @@ public partial class DFlexLayout
                 size.x += gap * childs.Count();
             }
         }
-        else
-        {
-            size.y += (topPadding + bottomPadding);
-        }
-        
+
         if (direction == DFlexLayout.ETypeDirection.PositiveY)
         {
             size.x = 0;
@@ -74,11 +70,7 @@ public partial class DFlexLayout
                 size.y += gap * childs.Count();
             }
         }
-        else
-        {
-            size.x += (leftPadding + rightPadding);
-        }
-        
+
         return (size, maxWidth, maxHeight, fillCount);
     }
 

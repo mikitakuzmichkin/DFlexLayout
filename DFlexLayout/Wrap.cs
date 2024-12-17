@@ -10,7 +10,7 @@ public partial class DFlexLayout
     private List<VirtualDFlexLayout> _wrapLayoutsList;
     public void SetChildWrap()
     {
-        var parentWidth = _Rect.rect.width;
+        var parentWidth = _InnerSize.x;
         float childBlock = 0;
         int groupIndex = 0;
         var childs = _flexChilds.Where(c => c.SkipLayout == false);
@@ -41,27 +41,25 @@ public partial class DFlexLayout
             var size = new Vector2(_Rect.rect.width,
                 layouts.Sum(l => l.FlexElement.GetSize().size.y) + WrapGap * layouts.Count);
             _FlexElement.SetSize(size.x, size.y, true);
-            parentSize = size;
+            parentSize = _InnerSize;
         }
         
         _wrapLayoutsList = layouts;
 
-        var layoutParams = GetChildSizeParams(layouts.Select(l => l.FlexElement), ETypeDirection.PositiveY, _Rect.rect, WrapGapType, WrapGap, 
-            TopPadding, BottomPadding, LeftPadding, RightPadding);
+        var layoutParams = GetChildSizeParams(layouts.Select(l => l.FlexElement), ETypeDirection.PositiveY, _Rect.rect, WrapGapType, WrapGap);
         Debug.Log($"layoutParams {gameObject.name} sumsize ={layoutParams.sumSize}");
         var fillSize = GetFillSize(layoutParams.sumSize, layoutParams.fillCount, _Rect.rect);
         SetChildPositionsPositive(ETypeDirection.PositiveY, layoutParams.sumSize, 
             new Vector2(layoutParams.maxWidth, layoutParams.maxHeight),  fillSize, layoutParams.fillCount, layouts.Select(l => l.FlexElement),
-            parentSize, WrapGap, WrapGapType, _Rect.pivot);
+            parentSize, WrapGap, WrapGapType, _Rect.pivot, _InnerPosition);
 
         foreach (var layout in layouts)
         {
-            var blockParams = GetChildSizeParams(layout.Childs, ETypeDirection.PositiveX, layout.GetRect(), GapType, Gap,
-                0, 0, 0, 0);
+            var blockParams = GetChildSizeParams(layout.Childs, ETypeDirection.PositiveX, layout.GetRect(), GapType, Gap);
             var blockFillSize = GetFillSize(blockParams.sumSize, blockParams.fillCount, layout.GetRect());
             SetChildPositionsPositive(ETypeDirection.PositiveX, blockParams.sumSize,
                 new Vector2(blockParams.maxWidth, blockParams.maxHeight), blockFillSize, blockParams.fillCount,
-                layout.Childs, layout.FlexElement.GetSize().size, Gap, GapType, new Vector2(0.5f, 0.5f));
+                layout.Childs, layout.FlexElement.GetSize().size, Gap, GapType, new Vector2(0.5f, 0.5f), Vector2.zero);
             foreach (var child in layout.Childs)
             {
                 child.SetLocalPos( layout.FlexElement.GetLocalPos() + child.GetLocalPos());
